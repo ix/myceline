@@ -1,0 +1,7 @@
+[package]
+name = "myceline"
+version = "0.1.0"
+authors = ["Lain <lain@lain.org.uk>"]
+
+[dependencies]
+termios = "0.2.2"
