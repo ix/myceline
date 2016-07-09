@@ -48,13 +48,21 @@ impl Editor {
     
     pub fn readline(&self, prompt: &str) -> Result<String> {
         let mut buf = String::new();
-
+        print!("{} ", prompt);
+        stdout().flush();
+        
         loop {
-            let byte = self.read_byte();
 
-            match byte {
-                Some(Ok(3)) => break,
-                _           => println!("{:?}", byte)
+            if let Some(byte) = self.read_byte() {
+                match byte {
+                    Ok(3)  => break,
+                    Ok(13) => break,
+                    Ok(b @ 32 ... 126)  => {
+                        print!("{}", b as char);
+                        buf.push(b as char);
+                    },                    
+                    _      => {}
+                }
             }
             
             stdout().flush();
