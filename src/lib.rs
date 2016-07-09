@@ -2,7 +2,7 @@
 extern crate termios;
 
 use std::io::prelude::*;
-use std::io::{Result, stdin};
+use std::io::{Result, stdin, stdout};
 
 use termios::*;
 
@@ -19,8 +19,13 @@ impl Editor {
 
     fn start_raw(&self) {
         let mut termios = self.initial.clone();
-        cfmakeraw(&mut termios);
-        termios.c_lflag |= ECHO;
+        termios.c_lflag &= !(ECHO | ICANON | IEXTEN | ISIG);
+        termios.c_iflag &= !(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+        termios.c_cflag &= !(CSIZE | PARENB);
+        termios.c_cflag |= CS8;
+        termios.c_oflag &= !(OPOST);
+        termios.c_cc[VMIN] = 1;
+        termios.c_cc[VTIME] = 0;
         tcsetattr(0, TCSANOW, &mut termios).unwrap();
     }
 
@@ -35,9 +40,9 @@ impl Editor {
         let mut reader = handle.lock().bytes();
 
         let result = reader.next();
-
+        
         self.end_raw();
-
+        
         result
     }
     
@@ -45,9 +50,16 @@ impl Editor {
         let mut buf = String::new();
 
         loop {
-            print!("{:?}", self.read_byte());
+            let byte = self.read_byte();
+
+            match byte {
+                Some(Ok(3)) => break,
+                _           => println!("{:?}", byte)
+            }
+            
+            stdout().flush();
         }
-        
+
         Ok(buf)
     }
 }
