@@ -46,7 +46,7 @@ impl Editor {
         result
     }
     
-    pub fn readline(&self, prompt: &str) -> Result<String> {
+    pub fn readline(&self, prompt: &str) -> Option<String> {
         let mut buf = String::new();
         print!("{} ", prompt);
         stdout().flush();
@@ -68,6 +68,12 @@ impl Editor {
             stdout().flush();
         }
 
-        Ok(buf)
+        if buf != "" {
+            Some(buf)
+        }
+
+        else {
+            None
+        }
     }
 }
