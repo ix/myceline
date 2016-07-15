@@ -53,6 +53,10 @@ impl Editor {
     let offset = prompt.len();
     let mut index: usize = offset;
 
+    print!("\u{001b}[1000D");
+    print!("{}", prompt);
+    handle.flush();
+    
     loop {
       if let Some(byte) = self.read_byte() {
         match byte {
@@ -91,10 +95,12 @@ impl Editor {
               }
             }
           },
+          
           Ok(b @ 32 ... 126)  => {
             buf.push(b as char);
             index = index + 1
           },
+          
           _ => {}
         }
       }
