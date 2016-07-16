@@ -61,11 +61,11 @@ impl Editor {
       if let Some(byte) = self.read_byte() {
         match byte {
           // Ctrl-C
-          Ok(3) => break,
+          Ok(3) => std::process::exit(0),
           // Ctrl-A
           Ok(1) => index = offset,
           // Ctrl-E
-          Ok(5) => index = (offset + buf.len()),
+          Ok(5) => index = offset + buf.len(),
           // Ctrl-K
           Ok(11) => {
             buf.truncate(index - offset);
@@ -73,6 +73,10 @@ impl Editor {
           }
           // Return
           Ok(13) => break,
+          // Backspace
+          Ok(127) => {
+
+          },
           // Handle cursor movement.
           // 27 is ESC
           Ok(27) => {
