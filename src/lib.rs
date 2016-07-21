@@ -72,7 +72,12 @@ impl Editor {
           // Ctrl-K
           Ok(11) => {
             buf.truncate(index - offset);
-          }
+          },
+          // Ctrl-L
+          Ok(12) => {
+            print!("\u{001b}[2J");
+            print!("\u{001b}[0;0H");
+          },
           // Return
           Ok(13) => break,
           // Backspace
