@@ -47,6 +47,9 @@ impl Editor {
     result
   }
 
+  // Gosh this is a mess, but I don't think there's
+  // a nicer way to do it.
+  // It's not that bad though.
   pub fn readline(&self, prompt: &str) -> Option<String> {
     let mut handle = stdout();
     let mut buf = String::new();
@@ -69,15 +72,18 @@ impl Editor {
           // Ctrl-K
           Ok(11) => {
             buf.truncate(index - offset);
-            print!("\u{001b}[0K");
           }
           // Return
           Ok(13) => break,
           // Backspace
           Ok(127) => {
-
+            if index > offset {
+              let pos = index - offset;
+              buf.drain(pos-1..pos).collect::<String>();
+              index = index - 1;
+            }          
           },
-          // Handle cursor movement.
+          // More complex escape sequences.
           // 27 is ESC
           Ok(27) => {
             // 91 is [
@@ -89,12 +95,38 @@ impl Editor {
                     index = index - 1
                   }
                 },
+                
                 // Right
                 Some(Ok(67)) => {
                   if index < (offset + buf.len()) {
                     index = index + 1
                   }            
                 },
+
+                // Delete
+                Some(Ok(51)) => {
+                  if let Some(Ok(126)) = self.read_byte() {
+                    let pos = index - offset;
+                    if pos != buf.len() {
+                      buf.drain(pos..pos+1).collect::<String>();
+                    }
+                  }
+                },
+
+                // Home
+                Some(Ok(55)) => {
+                  if let Some(Ok(126)) = self.read_byte() {
+                    index = offset
+                  }
+                },
+
+                // End
+                Some(Ok(56)) => {
+                  if let Some(Ok(126)) = self.read_byte() {
+                    index = offset + buf.len()
+                  }
+                }
+                
                 _ => {}
               }
             }
@@ -110,6 +142,7 @@ impl Editor {
       }
 
       print!("\u{001b}[1000D");
+      print!("\u{001b}[0K");
       print!("{}", prompt);
       print!("{}", buf);
       print!("\u{001b}[1000D");
